@@ -86,13 +86,13 @@ public class JibxDataReader implements DataReader<XMLStreamReader> {
     private static UnmarshallingContext getUnmarshallingContext(XMLStreamReader reader, Class type)
         throws JiBXException {
         // Following is a which we need to fix
-        if (true) {
-            try {
-                reader = StaxUtils.createXMLStreamReader(StaxUtils.read(reader));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        // if (true) {
+        try {
+            reader = StaxUtils.createXMLStreamReader(StaxUtils.read(reader));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        // }
 
         UnmarshallingContext ctx = (UnmarshallingContext)factory.createUnmarshallingContext();
         StAXReaderWrapper wrapper = new StAXReaderWrapper(reader, "SOAP-message", true);
