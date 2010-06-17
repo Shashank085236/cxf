@@ -17,11 +17,11 @@
  * under the License.
  */
 
-package demo.jibx.server;
+package org.apache.xcf.jibx.simple_types;
 
 import java.util.Date;
 
-public interface TestService {
+public interface SimpleTypesService {
 
     String testString(String context);
 

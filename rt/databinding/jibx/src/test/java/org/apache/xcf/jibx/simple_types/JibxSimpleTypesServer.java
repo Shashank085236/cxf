@@ -17,24 +17,25 @@
  * under the License.
  */
 
-package demo.jibx.server;
+package org.apache.xcf.jibx.simple_types;
 
 import org.apache.cxf.frontend.ServerFactoryBean;
 import org.apache.xcf.jibx.JiBXDataBinding;
 
-public class JibxServer {
-    protected JibxServer() throws Exception {
-        TestServiceImpl helloworldImpl = new TestServiceImpl();
+public class JibxSimpleTypesServer {
+    protected JibxSimpleTypesServer() throws Exception {
+        SimpleTypesServiceImpl helloworldImpl = new SimpleTypesServiceImpl();
         ServerFactoryBean svrFactory = new ServerFactoryBean();
-        svrFactory.setServiceClass(TestService.class);
+        svrFactory.setServiceClass(SimpleTypesService.class);
         svrFactory.setAddress("http://localhost:8080/Hello");
         svrFactory.setServiceBean(helloworldImpl);
-        svrFactory.getServiceFactory().setDataBinding(new JiBXDataBinding());
+//        svrFactory.getServiceFactory().setDataBinding(new JiBXDataBinding());
+        svrFactory.getServiceFactory().setAnonymousWrapperTypes(true);
         svrFactory.create();
     }
 
     public static void main(String args[]) throws Exception {
-        new JibxServer();
+        new JibxSimpleTypesServer();
         System.out.println("Server ready...");
 
         Thread.sleep(5 * 60 * 1000);

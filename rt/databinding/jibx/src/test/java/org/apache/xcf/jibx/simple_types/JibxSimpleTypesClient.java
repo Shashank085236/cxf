@@ -17,30 +17,29 @@
  * under the License.
  */
 
-package demo.jibx.client;
+package org.apache.xcf.jibx.simple_types;
 
 import java.util.Calendar;
 
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import org.apache.xcf.jibx.JiBXDataBinding;
 
-import demo.jibx.server.TestService;
 
-public final class JibxClient {
+public final class JibxSimpleTypesClient {
 
-    private JibxClient() {
+    private JibxSimpleTypesClient() {
     }
 
     public static void main(final String[] args) throws Exception {
         ClientProxyFactoryBean factory = new ClientProxyFactoryBean();
-        factory.setServiceClass(TestService.class);
+        factory.setServiceClass(SimpleTypesService.class);
         if (args != null && args.length > 0 && !"".equals(args[0])) {
             factory.setAddress(args[0]);
         } else {
-            factory.setAddress("http://localhost:8080/Hello");
+            factory.setAddress("http://localhost:9090/Hello");
         }
         factory.getServiceFactory().setDataBinding(new JiBXDataBinding());
-        TestService client = (TestService)factory.create();
+        SimpleTypesService client = (SimpleTypesService)factory.create();
 
         System.out.println("Invoke testString() ..");
         System.out.println(client.testString("Alice"));

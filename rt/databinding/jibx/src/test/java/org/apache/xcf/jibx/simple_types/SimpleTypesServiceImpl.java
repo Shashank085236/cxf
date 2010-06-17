@@ -17,11 +17,12 @@
  * under the License.
  */
 
-package demo.jibx.server;
+package org.apache.xcf.jibx.simple_types;
+
 
 import java.util.Date;
 
-public class TestServiceImpl implements TestService {
+public class SimpleTypesServiceImpl implements SimpleTypesService {
 
     public String testString(String context) {
         return "Hello " + context;
