@@ -26,11 +26,12 @@ import org.jibx.runtime.impl.BindingFactoryBase;
  * Dummy binding factory for conversion of simple value conversion which do not require a real JiBX binding.
  * This code was take from Axis2 JiBX code generation tool.
  */
-public class JibxNullBindingFactory extends BindingFactoryBase implements IBindingFactory {
+public final class JibxNullBindingFactory extends BindingFactoryBase implements IBindingFactory {
 
     private static final String[] EMPTY_ARRAY = new String[0];
+    private static JibxNullBindingFactory instance;
 
-    public JibxNullBindingFactory() {
+    private JibxNullBindingFactory() {
         super("null", 0, 0, "", "", "", "", EMPTY_ARRAY, EMPTY_ARRAY, "", "", EMPTY_ARRAY, "", "", "", "",
               "", EMPTY_ARRAY);
     }
@@ -47,5 +48,12 @@ public class JibxNullBindingFactory extends BindingFactoryBase implements IBindi
 
     public int getTypeIndex(String type) {
         return -1;
+    }
+
+    public static synchronized JibxNullBindingFactory getFactory() {
+        if (instance == null) {
+            instance = new JibxNullBindingFactory();
+        }
+        return instance;
     }
 }

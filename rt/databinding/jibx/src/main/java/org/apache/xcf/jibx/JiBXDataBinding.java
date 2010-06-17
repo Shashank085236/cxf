@@ -19,6 +19,7 @@
 
 package org.apache.xcf.jibx;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,9 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
+import javax.xml.transform.dom.DOMSource;
+
+import org.w3c.dom.Document;
 
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.xmlschema.SchemaCollection;
@@ -81,15 +85,25 @@ public class JiBXDataBinding extends AbstractDataBinding implements WrapperCapab
         if (LOG.isLoggable(Level.FINER)) {
             LOG.log(Level.FINER, "Initialize JiBX Databinding for [" + service.getName() + "] service");
         }
+
         for (ServiceInfo serviceInfo : service.getServiceInfos()) {
             SchemaCollection schemaCollection = serviceInfo.getXmlSchemaCollection();
             if (schemaCollection.getXmlSchemas().length > 1) {
                 // Schemas are already populated.
                 continue;
             }
-            JibxXmlSchemaInitializer schemaInit = new JibxXmlSchemaInitializer(serviceInfo);
+            
+            Collection<DOMSource> schemas = getSchemas();
+            if (schemas != null) {
+                for (DOMSource source : schemas) {
+                    addSchemaDocument(serviceInfo, schemaCollection, (Document)source.getNode(), source
+                        .getSystemId());
+                }
+            }
+
+            JibxXmlSchemaInitializer schemaInit = new JibxXmlSchemaInitializer(serviceInfo, schemaCollection,
+                                                                               this);
             schemaInit.walk();
         }
     }
-
 }

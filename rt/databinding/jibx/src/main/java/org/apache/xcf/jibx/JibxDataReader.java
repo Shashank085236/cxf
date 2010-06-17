@@ -22,25 +22,23 @@ package org.apache.xcf.jibx;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.validation.Schema;
+
+import org.w3c.dom.Document;
 
 import org.apache.cxf.databinding.DataReader;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.service.model.MessagePartInfo;
 import org.apache.cxf.staxutils.StaxUtils;
+import org.jibx.runtime.BindingDirectory;
 import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.JiBXException;
 import org.jibx.runtime.impl.StAXReaderWrapper;
 import org.jibx.runtime.impl.UnmarshallingContext;
 
 public class JibxDataReader implements DataReader<XMLStreamReader> {
-
-    private static IBindingFactory factory;
-
-    static {
-        factory = new JibxNullBindingFactory();
-    }
 
     public Object read(XMLStreamReader input) {
         throw new UnsupportedOperationException();
@@ -59,18 +57,16 @@ public class JibxDataReader implements DataReader<XMLStreamReader> {
                 } else {
                     throw new RuntimeException("Missing required element [" + ctype + "]");
                 }
+            } else {
+                return ctx.unmarshalElement(part.getTypeClass());   
             }
-
-            throw new RuntimeException("Not Implemented Yet");
-
         } catch (JiBXException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @SuppressWarnings("unchecked")
     public Object read(QName elementQName, XMLStreamReader input, Class type) {
-        throw new UnsupportedOperationException("Not Implemented Yet");
+        throw new UnsupportedOperationException("Not Implemented");
     }
 
     public void setAttachments(Collection<Attachment> attachments) {
@@ -82,18 +78,22 @@ public class JibxDataReader implements DataReader<XMLStreamReader> {
     public void setSchema(Schema s) {
     }
 
-    @SuppressWarnings("unchecked")
-    private static UnmarshallingContext getUnmarshallingContext(XMLStreamReader reader, Class type)
+    private static UnmarshallingContext getUnmarshallingContext(XMLStreamReader reader, Class jtype)
         throws JiBXException {
-        // Following is a which we need to fix
-        // if (true) {
+        IBindingFactory factory;
+        if (JibxUtil.isSimpleValue(jtype)) {
+            factory = JibxNullBindingFactory.getFactory();
+        } else {
+            factory = BindingDirectory.getFactory(jtype);
+        }
+        // HACK .. possible defect in JiBX framework, but need to check 
         try {
-            reader = StaxUtils.createXMLStreamReader(StaxUtils.read(reader));
-        } catch (Exception e) {
+            Document ele = StaxUtils.read(reader);
+            reader = StaxUtils.createXMLStreamReader(ele);
+        } catch (XMLStreamException e) {
             throw new RuntimeException(e);
         }
-        // }
-
+        //
         UnmarshallingContext ctx = (UnmarshallingContext)factory.createUnmarshallingContext();
         StAXReaderWrapper wrapper = new StAXReaderWrapper(reader, "SOAP-message", true);
         ctx.setDocument(wrapper);

@@ -28,16 +28,20 @@ import org.apache.cxf.common.xmlschema.SchemaCollection;
 import org.apache.cxf.service.ServiceModelVisitor;
 import org.apache.cxf.service.model.MessagePartInfo;
 import org.apache.cxf.service.model.ServiceInfo;
+import org.apache.ws.commons.schema.XmlSchema;
 import org.apache.ws.commons.schema.XmlSchemaElement;
+import org.jibx.runtime.BindingDirectory;
+import org.jibx.runtime.IBindingFactory;
+import org.jibx.runtime.JiBXException;
 
 public class JibxXmlSchemaInitializer extends ServiceModelVisitor {
     private static final Logger LOG = LogUtils.getLogger(JibxXmlSchemaInitializer.class);
-
     private SchemaCollection schemas;
-
-    public JibxXmlSchemaInitializer(ServiceInfo serviceInfo) {
+   
+    public JibxXmlSchemaInitializer(ServiceInfo serviceInfo, SchemaCollection schemas,
+                                    JiBXDataBinding databinding) {
         super(serviceInfo);
-        schemas = serviceInfo.getXmlSchemaCollection();
+        this.schemas = schemas;
     }
 
     @Override
@@ -58,7 +62,6 @@ public class JibxXmlSchemaInitializer extends ServiceModelVisitor {
         if (isFromWrapper && clazz.isArray() && !Byte.TYPE.equals(clazz.getComponentType())) {
             clazz = clazz.getComponentType();
         }
-
         mapClass(part, clazz);
     }
 
@@ -87,7 +90,28 @@ public class JibxXmlSchemaInitializer extends ServiceModelVisitor {
             QName schemaType = JibxUtil.getSchemaType(clazzName);
             part.setTypeQName(schemaType);
             part.setXmlSchema(schemas.getTypeByQName(schemaType));
+        } else {
+            try {
+                IBindingFactory factory = BindingDirectory.getFactory(clazz);
+                String[][] abstractMappings = factory.getAbstractMappings();
+                String stype = abstractMappings[0][0];
+                QName qName = JibxUtil.getQName(stype);
+
+                XmlSchema schema = schemas.getSchemaForElement(qName);
+                if (schema != null) {
+                 // needs to handle element is a Global element case
+                    XmlSchemaElement element = schema.getElementByName(qName);
+                    part.setXmlSchema(element);
+                    part.setElementQName(qName);
+                    part.setConcreteName(qName);
+                    part.setElement(true);
+                } else {
+                    // TODO : throw an exception ?
+                }
+                
+            } catch (JiBXException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
-
 }

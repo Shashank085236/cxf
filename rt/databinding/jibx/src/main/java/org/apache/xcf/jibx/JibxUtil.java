@@ -156,7 +156,7 @@ public final class JibxUtil {
                         value
                     }).toString();
                 } catch (Exception e) {
-                    throw new RuntimeException("", e);
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -186,6 +186,12 @@ public final class JibxUtil {
 
     public static Class<?> getPrimitiveType(final String type) {
         return simpleWrapperMap.get(type);
+    }
+
+    public static QName getQName(String qname) {
+        String ns = qname.substring(1, qname.indexOf("}"));
+        String localName = qname.substring(qname.indexOf("}") + 2);
+        return new QName(ns, localName);
     }
 
     private static class Format {
