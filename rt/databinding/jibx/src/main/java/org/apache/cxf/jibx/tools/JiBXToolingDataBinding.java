@@ -37,6 +37,8 @@ import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolException;
@@ -53,15 +55,15 @@ import org.jibx.schema.codegen.custom.SchemaCustom;
 import org.jibx.schema.codegen.custom.SchemasetCustom;
 import org.jibx.schema.validation.ProblemMultiHandler;
 
-import org.w3c.dom.Element;
-
 public class JiBXToolingDataBinding implements DataBindingProfile {
 
     private JiBXToolingProblemHandler problemHandler = new JiBXToolingProblemHandler();
     private Map<String, Element> schemaMap = new HashMap<String, Element>();
 
-    private Map<org.jibx.runtime.QName, MappingElement> types = new HashMap<org.jibx.runtime.QName, MappingElement>();
-    private Map<org.jibx.runtime.QName, MappingElement> elements = new HashMap<org.jibx.runtime.QName, MappingElement>();
+    private Map<org.jibx.runtime.QName, MappingElement> types = new HashMap<org.jibx.runtime.QName, 
+                                                                            MappingElement>();
+    private Map<org.jibx.runtime.QName, MappingElement> elements = new HashMap<org.jibx.runtime.QName, 
+                                                                            MappingElement>();
 
     public DefaultValueWriter createDefaultValueWriter(QName qn, boolean element) {
         return null;
@@ -131,7 +133,7 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
     }
 
     public String getType(QName qn, boolean element) {
-        MappingElement mappingElement = (element) ? elements.get(jibxQName(qn)) : types.get(jibxQName(qn));
+        MappingElement mappingElement = element ? elements.get(jibxQName(qn)) : types.get(jibxQName(qn));
         return (mappingElement == null) ? null : mappingElement.getClassName();
     }
 
@@ -248,14 +250,14 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
         private SchemasetCustom customRoot;
         private URL schemaRoot;
         private File generatePath;
-        private boolean verbose = false;
-        private String usingNamespace = null;
-        private String nonamespacePackage = null;
-        private String bindingName = null;
-        private List fileset = null;
+        private boolean verbose;
+        private String usingNamespace;
+        private String nonamespacePackage;
+        private String bindingName;
+        private List fileset;
         private List includePaths = new ArrayList();
-        private File modelFile = null;
-        private BindingElement rootBinding = null;
+        private File modelFile;
+        private BindingElement rootBinding;
         private File compilePath;
 
         public void setProblemHandler(ProblemMultiHandler problemHandler) {

@@ -32,10 +32,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.w3c.dom.Element;
+
 import org.jibx.schema.ISchemaResolver;
 import org.jibx.schema.MemoryResolver;
-
-import org.w3c.dom.Element;
 
 /**
  * A Wrapper class that acts as a wrapper when passing schema instances to JiBX code generation framework. An
@@ -61,7 +61,7 @@ public class JiBXSchemaResolver extends MemoryResolver implements ISchemaResolve
      * Converts a {@link Element} type into a @link {@link InputStream} using a {@link Transformer} instance.
      * 
      * @param element the element to convert into a {@link InputStream}
-     * @return stream an InputStream that the element is converted 
+     * @return stream an InputStream that the element is converted
      */
     private static InputStream getAsStream(Element element) {
         try {
