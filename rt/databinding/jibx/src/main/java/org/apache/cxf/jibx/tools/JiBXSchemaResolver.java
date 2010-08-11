@@ -37,6 +37,10 @@ import org.jibx.schema.MemoryResolver;
 
 import org.w3c.dom.Element;
 
+/**
+ * A Wrapper class that acts as a wrapper when passing schema instances to JiBX code generation framework. An
+ * instance of this holds a schema instance as a {@line Element} type instance.
+ */
 public class JiBXSchemaResolver extends MemoryResolver implements ISchemaResolver {
     Element schemaElement;
 
@@ -53,6 +57,12 @@ public class JiBXSchemaResolver extends MemoryResolver implements ISchemaResolve
         return getAsStream(schemaElement);
     }
 
+    /**
+     * Converts a {@link Element} type into a @link {@link InputStream} using a {@link Transformer} instance.
+     * 
+     * @param element the element to convert into a {@link InputStream}
+     * @return stream an InputStream that the element is converted 
+     */
     private static InputStream getAsStream(Element element) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

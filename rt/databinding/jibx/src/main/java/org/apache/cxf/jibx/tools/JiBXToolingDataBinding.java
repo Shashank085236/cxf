@@ -56,7 +56,7 @@ import org.jibx.schema.validation.ProblemMultiHandler;
 import org.w3c.dom.Element;
 
 public class JiBXToolingDataBinding implements DataBindingProfile {
-    
+
     private JiBXToolingProblemHandler problemHandler = new JiBXToolingProblemHandler();
     private Map<String, Element> schemaMap = new HashMap<String, Element>();
 
@@ -73,7 +73,7 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
 
     public void generate(ToolContext context) throws ToolException {
         try {
-            JiBXCodeGenHelper codegen = new JiBXCodeGenHelper();
+            JiBXCodeGen codegen = new JiBXCodeGen();
 
             ProblemMultiHandler handler = new ProblemMultiHandler();
             handler.addHandler(problemHandler);
@@ -210,6 +210,10 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
                     return valueElement.getDeclaredType();
                 }
             }
+            // TODO
+            /*
+             * else if (child instanceof ) { .. } else if () { .. }
+             */
         }
         return null;
     }
@@ -234,7 +238,12 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
         }
     }
 
-    private class JiBXCodeGenHelper {
+    /**
+     * A helper class to manage JiBX specific code generation parameters and initiate code generation. Every
+     * member variable is a parameter for JiBX code generator and carries a default value in case it is not
+     * set by CXF code generator framework.
+     */
+    private static class JiBXCodeGen {
         private ProblemMultiHandler problemHandler;
         private SchemasetCustom customRoot;
         private URL schemaRoot;
@@ -297,6 +306,12 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
             this.modelFile = modelFile;
         }
 
+        /**
+         * Returns the {@link BindingElement} instance that contains binding information of generated code.
+         * Hence it is <strong>only meaningful<strong> after executing {@link #generate()} method.
+         * 
+         * @return the binding element instance that contains binding info of generated code
+         */
         public BindingElement getRootBinding() {
             return rootBinding;
         }
@@ -309,6 +324,13 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
             this.compilePath = compilePath;
         }
 
+        /**
+         * Generates code based on parameters set. Once the code is generated {@link #rootBinding} is set
+         * which can be retrieved by {@link #getRootBinding()}
+         * 
+         * @throws JiBXException if thrown by JiBX code generator
+         * @throws IOException if thrown by JiBX code generator
+         */
         public void generate() throws JiBXException, IOException {
             CodeGen codegen = new CodeGen(customRoot, schemaRoot, generatePath);
             codegen.generate(verbose, usingNamespace, nonamespacePackage, bindingName, fileset, includePaths,
