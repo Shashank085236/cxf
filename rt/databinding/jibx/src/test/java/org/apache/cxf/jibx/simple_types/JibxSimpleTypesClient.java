@@ -17,45 +17,35 @@
  * under the License.
  */
 
-package org.apache.cxf.jibx.complex_types;
+package org.apache.cxf.jibx.simple_types;
 
-import com.sosnoski.ws.library.types.BookInformation;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Calendar;
 
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import org.apache.cxf.jibx.JiBXDataBinding;
 
-public final class JiBXLibraryClient {
-    private JiBXLibraryClient() {
+
+public final class JibxSimpleTypesClient {
+
+    private JibxSimpleTypesClient() {
     }
 
     public static void main(final String[] args) throws Exception {
         ClientProxyFactoryBean factory = new ClientProxyFactoryBean();
+        factory.setServiceClass(SimpleTypesService.class);
         if (args != null && args.length > 0 && !"".equals(args[0])) {
             factory.setAddress(args[0]);
         } else {
-            factory.setAddress("http://localhost:9090/LibraryService");
+            factory.setAddress("http://localhost:9090/Hello");
         }
-        factory.setServiceClass(LibraryService.class);
         factory.getServiceFactory().setDataBinding(new JiBXDataBinding());
-        LibraryService proxy = (LibraryService)factory.create();
-        BookInformation info = getBookInfo();
-        System.out.println("Invoke testString() ..");
-        boolean result = proxy.addBook(info);
-        System.out.println(result);
-    }
+        SimpleTypesService client = (SimpleTypesService)factory.create();
 
-    private static BookInformation getBookInfo() {
-        BookInformation info = new BookInformation();
-        info.setIsbn("isbn");
-        List<String> authors = new ArrayList<String>();
-        authors.add("authors1");
-        authors.add("authors2");
-        info.setAuthors(authors);
-        info.setTitle("title");
-        info.setTitle("type");
-        return info;
+        System.out.println("Invoke testString() ..");
+        System.out.println(client.testString("Alice"));
+        System.out.println("Invoke testDouble() ..");
+        System.out.println(client.testDouble(1.0));
+        System.out.println("Invoke testDate() ..");
+        System.out.println(client.testDate(Calendar.getInstance().getTime()));
     }
 }

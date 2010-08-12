@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.cxf.frontend.ServerFactoryBean;
-import org.apache.xcf.jibx.JiBXDataBinding;
+import org.apache.cxf.jibx.JiBXDataBinding;
 
 public class JiBXLibraryServer {
     protected JiBXLibraryServer() throws Exception {

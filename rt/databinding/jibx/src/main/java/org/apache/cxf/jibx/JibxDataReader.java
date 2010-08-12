@@ -82,7 +82,6 @@ public class JibxDataReader implements DataReader<XMLStreamReader> {
         } else {
             factory = BindingDirectory.getFactory(jtype);
         }
-        
         UnmarshallingContext ctx = (UnmarshallingContext)factory.createUnmarshallingContext();
         StAXReaderWrapper wrapper = new StAXReaderWrapper(reader, "Data-element", true);
         ctx.setDocument(wrapper);
