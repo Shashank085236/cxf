@@ -23,58 +23,64 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import org.xml.sax.InputSource;
 
-import org.w3c.dom.Element;
-
+import org.apache.cxf.common.xmlschema.SchemaCollection;
+import org.apache.ws.commons.schema.XmlSchema;
+import org.apache.ws.commons.schema.resolver.URIResolver;
 import org.jibx.schema.ISchemaResolver;
-import org.jibx.schema.MemoryResolver;
 
 /**
- * A Wrapper class that acts as a wrapper when passing schema instances to JiBX code generation framework. An
- * instance of this holds a schema instance as a {@line Element} type instance.
+ * A Wrapper class that acts as a wrapper when passing schema instances to JiBX code generation framework.
  */
-public class JiBXSchemaResolver extends MemoryResolver implements ISchemaResolver {
-    Element schemaElement;
+public class JiBXSchemaResolver implements ISchemaResolver {
+    private String id;
+    private String name;
+    private XmlSchema schema;
+    private SchemaCollection collection;
 
-    public JiBXSchemaResolver(String id) {
-        super(id);
-    }
-
-    public JiBXSchemaResolver(String id, Element schemaElement) {
-        super(id);
-        this.schemaElement = schemaElement;
+    public JiBXSchemaResolver(String id, XmlSchema schema, SchemaCollection collection) {
+        this.id = id;
+        setName(id);
+        this.schema = schema;
+        this.collection = collection;
     }
 
     public InputStream getContent() throws IOException {
-        return getAsStream(schemaElement);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        schema.write(bos);
+        return new ByteArrayInputStream(bos.toByteArray());
     }
 
-    /**
-     * Converts a {@link Element} type into a @link {@link InputStream} using a {@link Transformer} instance.
-     * 
-     * @param element the element to convert into a {@link InputStream}
-     * @return stream an InputStream that the element is converted
-     */
-    private static InputStream getAsStream(Element element) {
+    public String getId() {
+        return id;
+    }
+
+    private void setName(String uri) {
+        this.name = uri.substring(uri.lastIndexOf('/') + 1);
+    }
+    
+    public String getName() {
+        return name; // Fot the time being
+    }
+
+    public ISchemaResolver resolve(String loc, String tns) throws IOException {
+        URIResolver resolver = collection.getXmlSchemaCollection().getSchemaResolver();
+        InputSource source = resolver.resolveEntity(tns, loc, id);
+        
+        SchemaCollection schemaCol = new SchemaCollection();
+        schemaCol.setSchemaResolver(resolver);
+        XmlSchema read = schemaCol.read(source, null);
+        
+        String uri = loc;
         try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Source xmlSource = new DOMSource(element);
-            Result streamResult = new StreamResult(baos);
-            TransformerFactory factory = TransformerFactory.newInstance();
-            Transformer transformer = factory.newTransformer();
-            transformer.transform(xmlSource, streamResult);
-            return new ByteArrayInputStream(baos.toByteArray());
-        } catch (TransformerException e) {
-            throw new RuntimeException(e);
+            URL url = new URL(new URL(id), loc);
+            uri = url.toURI().toString();
+        } catch (Exception e) {
+            // do nothing
         }
+        return new JiBXSchemaResolver(uri, read, schemaCol);
     }
-
 }

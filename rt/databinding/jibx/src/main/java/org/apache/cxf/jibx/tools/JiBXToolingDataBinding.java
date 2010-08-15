@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -30,20 +31,25 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.wsdl.Definition;
-import javax.wsdl.Types;
 import javax.wsdl.WSDLException;
-import javax.wsdl.extensions.schema.Schema;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import org.apache.cxf.BusFactory;
+import org.apache.cxf.common.xmlschema.SchemaCollection;
+import org.apache.cxf.helpers.CastUtils;
+import org.apache.cxf.tools.common.ClassUtils;
 import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.common.model.DefaultValueWriter;
+import org.apache.cxf.tools.util.ClassCollector;
 import org.apache.cxf.tools.wsdlto.core.DataBindingProfile;
+import org.jibx.binding.Compile;
+import org.jibx.binding.Utility;
 import org.jibx.binding.model.BindingElement;
 import org.jibx.binding.model.BindingUtils;
 import org.jibx.binding.model.MappingElement;
@@ -51,6 +57,9 @@ import org.jibx.binding.model.ValueElement;
 import org.jibx.runtime.JiBXException;
 import org.jibx.schema.ISchemaResolver;
 import org.jibx.schema.codegen.CodeGen;
+import org.jibx.schema.codegen.PackageHolder;
+import org.jibx.schema.codegen.PackageOrganizer;
+import org.jibx.schema.codegen.StringObjectPair;
 import org.jibx.schema.codegen.custom.SchemaCustom;
 import org.jibx.schema.codegen.custom.SchemasetCustom;
 import org.jibx.schema.validation.ProblemMultiHandler;
@@ -59,10 +68,11 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
 
     private JiBXToolingProblemHandler problemHandler = new JiBXToolingProblemHandler();
     private Map<String, Element> schemaMap = new HashMap<String, Element>();
+    private List<ISchemaResolver> resolvers = new ArrayList<ISchemaResolver>();
 
-    private Map<org.jibx.runtime.QName, MappingElement> types = new HashMap<org.jibx.runtime.QName, 
+    private Map<org.jibx.runtime.QName, MappingElement> types = new HashMap<org.jibx.runtime.QName,
                                                                             MappingElement>();
-    private Map<org.jibx.runtime.QName, MappingElement> elements = new HashMap<org.jibx.runtime.QName, 
+    private Map<org.jibx.runtime.QName, MappingElement> elements = new HashMap<org.jibx.runtime.QName,
                                                                             MappingElement>();
 
     public DefaultValueWriter createDefaultValueWriter(QName qn, boolean element) {
@@ -103,7 +113,8 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
             codegen.setCompilePath(compilePath);
 
             // Set schema resolver list
-            codegen.setFileset(schemaResolverList(schemaMap));
+
+            codegen.setFileset(resolvers);
 
             // Set Customization
             String[] bindingFiles = (String[])context.get(ToolConstants.CFG_BINDING);
@@ -120,8 +131,22 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
             codegen.generate();
 
             if (Boolean.valueOf((String)context.get(ToolConstants.CFG_COMPILE))) {
-                // TODO compile the generated code with the generated binding file ??
-                // params.compile();
+                if (context.get(ToolConstants.CFG_SOURCEDIR) == null) {
+                    context.put(ToolConstants.CFG_SOURCEDIR, generatePath.getAbsolutePath());
+                }
+                if (context.get(ToolConstants.CFG_CLASSDIR) == null) {
+                    context.put(ToolConstants.CFG_CLASSDIR, compilePath.getAbsolutePath());
+                }
+
+                ClassCollector collector = new ClassCollector();
+                addGeneratedSourceFiles(codegen.getPackageOrganizer(), collector);
+                context.put(ClassCollector.class, collector);
+
+                // compile generated source files
+                (new ClassUtils()).compile(context);
+
+                // jibx binding compiler
+                codegen.compile();
             }
 
             BindingElement rootBinding = codegen.getRootBinding();
@@ -149,53 +174,20 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
 
     private void initializeJiBXCodeGenerator(String wsdlUrl) {
         try {
-            loadWsdl(wsdlUrl, this.schemaMap);
+            loadWsdl(wsdlUrl, this.schemaMap, this.resolvers);
         } catch (WSDLException e) {
             problemHandler.handleSevere("Error in loading wsdl file at :" + wsdlUrl, e);
         }
     }
 
-    private static void loadWsdl(String wsdlUrl, Map<String, Element> schemas) throws WSDLException {
+    private static void loadWsdl(String wsdlUrl, Map<String, Element> schemaMap,
+                                 List<ISchemaResolver> resolvers) throws WSDLException {
         WSDLFactory factory = WSDLFactory.newInstance();
         WSDLReader reader = factory.newWSDLReader();
-        Definition definition = reader.readWSDL(wsdlUrl);
-        addWsdlSchemas(definition, schemas);
-    }
+        Definition parentDef = reader.readWSDL(wsdlUrl);
 
-    private static void addWsdlSchemas(Definition definition, Map<String, Element> schemaContents) {
-        Types types = definition.getTypes();
-        List extensibilityElements = types.getExtensibilityElements();
-        for (Object extensibilityElement : extensibilityElements) {
-            if (extensibilityElement instanceof Schema) {
-                Schema schema = (Schema)extensibilityElement;
-                addSchema(schema.getDocumentBaseURI(), schema, schemaContents);
-            }
-        }
-    }
-
-    private static void addSchema(String docBaseURI, Schema schema, Map<String, Element> schemaContents) {
-        if (!schemaContents.containsKey(docBaseURI)) {
-            schemaContents.put(docBaseURI, schema.getElement());
-        } else {
-            if (schemaContents.containsValue(schema.getElement())) {
-                // do nothing
-            } else {
-                String key = schema.getDocumentBaseURI() + "#"
-                             + schema.getElement().getAttribute("targetNamespace");
-                if (!schemaContents.containsKey(key)) {
-                    schemaContents.put(key, schema.getElement());
-                }
-            }
-        }
-        // TODO : Handle imports and includes recursively
-    }
-
-    private static List<ISchemaResolver> schemaResolverList(Map<String, Element> schemaContents) {
-        List<ISchemaResolver> schemaResolverList = new ArrayList<ISchemaResolver>();
-        for (String key : schemaContents.keySet()) {
-            schemaResolverList.add(new JiBXSchemaResolver(key, schemaContents.get(key)));
-        }
-        return schemaResolverList;
+        JiBXSchemaHelper util = new JiBXSchemaHelper(BusFactory.getDefaultBus(), schemaMap);
+        util.getSchemas(parentDef, new SchemaCollection(), resolvers);
     }
 
     private static org.jibx.runtime.QName jibxQName(QName qname) {
@@ -240,6 +232,23 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
         }
     }
 
+    private static void addGeneratedSourceFiles(PackageOrganizer o, ClassCollector collector) {
+        List<PackageHolder> packages = CastUtils.cast(o.getPackages());
+        for (PackageHolder pkgHolder : packages) {
+            if (pkgHolder.getTopClassCount() > 0) {
+                String pkgName = pkgHolder.getName();
+                StringObjectPair[] classFields = pkgHolder.getClassFields();
+                for (int i = 0; i < classFields.length; i++) {
+                    String fullname = classFields[i].getKey();
+                    if (fullname.contains("$")) { // CHECK
+                        continue;
+                    }
+                    collector.addTypesClassName(pkgName, fullname.replace(pkgName, ""), fullname);
+                }
+            }
+        }
+    }
+
     /**
      * A helper class to manage JiBX specific code generation parameters and initiate code generation. Every
      * member variable is a parameter for JiBX code generator and carries a default value in case it is not
@@ -253,12 +262,13 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
         private boolean verbose;
         private String usingNamespace;
         private String nonamespacePackage;
-        private String bindingName;
+        private String bindingName = "binding";
         private List fileset;
         private List includePaths = new ArrayList();
         private File modelFile;
         private BindingElement rootBinding;
         private File compilePath;
+        private PackageOrganizer packageOrganizer;
 
         public void setProblemHandler(ProblemMultiHandler problemHandler) {
             this.problemHandler = problemHandler;
@@ -318,8 +328,8 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
             return rootBinding;
         }
 
-        public void setRootBinding(BindingElement rootBinding) {
-            this.rootBinding = rootBinding;
+        public PackageOrganizer getPackageOrganizer() {
+            return packageOrganizer;
         }
 
         public void setCompilePath(File compilePath) {
@@ -337,7 +347,32 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
             CodeGen codegen = new CodeGen(customRoot, schemaRoot, generatePath);
             codegen.generate(verbose, usingNamespace, nonamespacePackage, bindingName, fileset, includePaths,
                              modelFile, problemHandler);
-            setRootBinding(codegen.getRootBinding());
+            setPostGenerateInfo(codegen);
         }
+
+        public void compile() throws JiBXException {
+            Compile compiler = new Compile();
+            String path = generatePath.getAbsolutePath();
+            if (!path.endsWith(File.separator)) {
+                path = path + File.separator;
+            }
+
+            List<String> clsPath = new ArrayList<String>();
+            clsPath.add(compilePath.getAbsolutePath());
+            clsPath.addAll(Arrays.asList(Utility.getClassPaths()));
+
+            String[] clsPathSet = clsPath.toArray(new String[clsPath.size()]);
+            String[] bindingSet = new String[] {
+                path + bindingName + ".xml"
+            };
+
+            compiler.compile(clsPathSet, bindingSet);
+        }
+
+        private void setPostGenerateInfo(CodeGen codegen) {
+            this.rootBinding = codegen.getRootBinding();
+            this.packageOrganizer = codegen.getPackageDirectory();
+        }
+
     }
 }
