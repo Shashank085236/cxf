@@ -37,13 +37,13 @@ import org.jibx.runtime.JiBXException;
 public class JibxSchemaInitializer extends ServiceModelVisitor {
     private static final Logger LOG = LogUtils.getLogger(JibxSchemaInitializer.class);
     private SchemaCollection schemas;
-   
+
     public JibxSchemaInitializer(ServiceInfo serviceInfo, SchemaCollection schemas,
-                                    JibxDataBinding databinding) {
+                                 JibxDataBinding databinding) {
         super(serviceInfo);
         this.schemas = schemas;
     }
-    
+
     @Override
     public void begin(MessagePartInfo part) {
         LOG.finest(part.getName().toString());
@@ -85,7 +85,6 @@ public class JibxSchemaInitializer extends ServiceModelVisitor {
     }
 
     private void mapClass(MessagePartInfo part, Class<?> clazz) {
-        String clazzName = clazz.getName();
         if (JibxSimpleTypes.isSimpleType(clazz)) {
             QName schemaType = JibxSimpleTypes.schemaType(clazz);
             part.setTypeQName(schemaType);
@@ -99,7 +98,7 @@ public class JibxSchemaInitializer extends ServiceModelVisitor {
 
                 XmlSchema schema = schemas.getSchemaForElement(qName);
                 if (schema != null) {
-                 // needs to handle element is a Global element case
+                    // needs to handle element is a Global element case
                     XmlSchemaElement element = schema.getElementByName(qName);
                     part.setXmlSchema(element);
                     part.setElementQName(qName);
@@ -108,7 +107,7 @@ public class JibxSchemaInitializer extends ServiceModelVisitor {
                 } else {
                     // TODO : throw an exception ?
                 }
-                
+
             } catch (JiBXException e) {
                 throw new RuntimeException(e);
             }

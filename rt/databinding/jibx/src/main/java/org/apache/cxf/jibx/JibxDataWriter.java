@@ -35,9 +35,7 @@ import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallable;
 import org.jibx.runtime.IMarshallingContext;
 import org.jibx.runtime.JiBXException;
-import org.jibx.runtime.Utility;
 import org.jibx.runtime.impl.StAXWriter;
-import org.jibx.util.Types;
 
 public class JibxDataWriter implements DataWriter<XMLStreamWriter> {
 
