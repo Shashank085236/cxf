@@ -24,9 +24,12 @@ import java.lang.reflect.Method;
 
 import org.apache.cxf.databinding.AbstractWrapperHelper;
 
-public class JiBXWrapperHelper extends AbstractWrapperHelper {
+/**
+ * JibxWrapperHelper 
+ */
+public class JibxWrapperHelper extends AbstractWrapperHelper {
     
-    protected JiBXWrapperHelper(Class<?> wt, Method[] sets, Method[] gets, Field[] f) {
+    protected JibxWrapperHelper(Class<?> wt, Method[] sets, Method[] gets, Field[] f) {
         super(wt, sets, gets, f);
     }
     

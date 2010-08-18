@@ -64,9 +64,9 @@ import org.jibx.schema.codegen.custom.SchemaCustom;
 import org.jibx.schema.codegen.custom.SchemasetCustom;
 import org.jibx.schema.validation.ProblemMultiHandler;
 
-public class JiBXToolingDataBinding implements DataBindingProfile {
+public class JibxToolingDataBinding implements DataBindingProfile {
 
-    private JiBXToolingProblemHandler problemHandler = new JiBXToolingProblemHandler();
+    private JibxToolingProblemHandler problemHandler = new JibxToolingProblemHandler();
     private Map<String, Element> schemaMap = new HashMap<String, Element>();
     private List<ISchemaResolver> resolvers = new ArrayList<ISchemaResolver>();
 
@@ -186,7 +186,7 @@ public class JiBXToolingDataBinding implements DataBindingProfile {
         WSDLReader reader = factory.newWSDLReader();
         Definition parentDef = reader.readWSDL(wsdlUrl);
 
-        JiBXSchemaHelper util = new JiBXSchemaHelper(BusFactory.getDefaultBus(), schemaMap);
+        JibxSchemaHelper util = new JibxSchemaHelper(BusFactory.getDefaultBus(), schemaMap);
         util.getSchemas(parentDef, new SchemaCollection(), resolvers);
     }
 

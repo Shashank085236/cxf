@@ -46,9 +46,9 @@ import org.apache.cxf.jaxb.JAXBUtils;
 import org.apache.cxf.service.Service;
 import org.apache.cxf.service.model.ServiceInfo;
 
-public class JiBXDataBinding extends AbstractDataBinding implements WrapperCapableDatabinding {
+public class JibxDataBinding extends AbstractDataBinding implements WrapperCapableDatabinding {
 
-    private static final Logger LOG = LogUtils.getLogger(JiBXDataBinding.class);
+    private static final Logger LOG = LogUtils.getLogger(JibxDataBinding.class);
 
     private static final Class<?> SUPPORTED_DATA_READER_FORMATS[] = new Class<?>[] {
         XMLStreamReader.class
@@ -101,7 +101,7 @@ public class JiBXDataBinding extends AbstractDataBinding implements WrapperCapab
                 }
             }
 
-            JibxXmlSchemaInitializer schemaInit = new JibxXmlSchemaInitializer(serviceInfo, schemaCollection,
+            JibxSchemaInitializer schemaInit = new JibxSchemaInitializer(serviceInfo, schemaCollection,
                                                                                this);
             schemaInit.walk();
         }
@@ -155,7 +155,7 @@ public class JiBXDataBinding extends AbstractDataBinding implements WrapperCapab
 
         }
 
-        return new JiBXWrapperHelper(wrapperType, setMethods.toArray(new Method[setMethods.size()]),
+        return new JibxWrapperHelper(wrapperType, setMethods.toArray(new Method[setMethods.size()]),
                                      getMethods.toArray(new Method[getMethods.size()]), fields
                                          .toArray(new Field[fields.size()]));
     }

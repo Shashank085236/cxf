@@ -35,13 +35,13 @@ import org.jibx.schema.ISchemaResolver;
 /**
  * A Wrapper class that acts as a wrapper when passing schema instances to JiBX code generation framework.
  */
-public class JiBXSchemaResolver implements ISchemaResolver {
+public class JibxSchemaResolver implements ISchemaResolver {
     private String id;
     private String name;
     private XmlSchema schema;
     private SchemaCollection collection;
 
-    public JiBXSchemaResolver(String id, XmlSchema schema, SchemaCollection collection) {
+    public JibxSchemaResolver(String id, XmlSchema schema, SchemaCollection collection) {
         this.id = id;
         setName(id);
         this.schema = schema;
@@ -81,6 +81,6 @@ public class JiBXSchemaResolver implements ISchemaResolver {
         } catch (Exception e) {
             // do nothing
         }
-        return new JiBXSchemaResolver(uri, read, schemaCol);
+        return new JibxSchemaResolver(uri, read, schemaCol);
     }
 }

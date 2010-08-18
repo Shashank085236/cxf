@@ -44,13 +44,13 @@ import org.apache.cxf.helpers.CastUtils;
 import org.apache.ws.commons.schema.XmlSchema;
 import org.jibx.schema.ISchemaResolver;
 
-public class JiBXSchemaHelper {
+public class JibxSchemaHelper {
 
     private final Map<String, Element> schemaList;
     private final Map<String, String> catalogResolved = new HashMap<String, String>();
     private final Bus bus;
 
-    public JiBXSchemaHelper(final Bus b, final Map<String, Element> s) {
+    public JibxSchemaHelper(final Bus b, final Map<String, Element> s) {
         this.bus = b;
         this.schemaList = s;
     }
@@ -119,7 +119,7 @@ public class JiBXSchemaHelper {
                         XmlSchema xmlSchema = schemaCol.read(schemaElem, systemId);
                         catalogResolved.putAll(schemaResolver.getResolvedMap());
 
-                        JiBXSchemaResolver resolver = new JiBXSchemaResolver(systemId, xmlSchema, schemaCol);
+                        JibxSchemaResolver resolver = new JibxSchemaResolver(systemId, xmlSchema, schemaCol);
                         resolvers.add(resolver);
 
                         // SchemaInfo schemaInfo = new SchemaInfo(xmlSchema.getTargetNamespace());

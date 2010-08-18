@@ -35,7 +35,9 @@ import org.jibx.runtime.IBindingFactory;
 import org.jibx.runtime.IMarshallable;
 import org.jibx.runtime.IMarshallingContext;
 import org.jibx.runtime.JiBXException;
+import org.jibx.runtime.Utility;
 import org.jibx.runtime.impl.StAXWriter;
+import org.jibx.util.Types;
 
 public class JibxDataWriter implements DataWriter<XMLStreamWriter> {
 
@@ -45,7 +47,7 @@ public class JibxDataWriter implements DataWriter<XMLStreamWriter> {
     public void write(Object obj, MessagePartInfo part, XMLStreamWriter output) {
         Class jtype = part.getTypeClass();
         QName stype = part.getTypeQName();
-        if (JibxUtil.isSimpleValue(jtype)) {
+        if (JibxSimpleTypes.isSimpleType(jtype)) {
             try {
                 String pfx = output.getPrefix(part.getConcreteName().getNamespaceURI());
                 if (StringUtils.isEmpty(pfx)) {
@@ -56,12 +58,11 @@ public class JibxDataWriter implements DataWriter<XMLStreamWriter> {
                     output.writeStartElement(pfx, part.getConcreteName().getLocalPart(), part
                         .getConcreteName().getNamespaceURI());
                 }
-                output.writeCharacters(JibxUtil.toText(obj, stype));
+                output.writeCharacters(JibxSimpleTypes.toText(stype, obj));
                 output.writeEndElement();
             } catch (XMLStreamException e) {
                 throw new RuntimeException(e);
             }
-
         } else {
             try {
                 IBindingFactory factory = BindingDirectory.getFactory(obj.getClass());

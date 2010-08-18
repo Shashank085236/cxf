@@ -44,12 +44,12 @@ public class JibxDataReader implements DataReader<XMLStreamReader> {
         Class<?> type = part.getTypeClass();
         try {
             UnmarshallingContext ctx = getUnmarshallingContext(input, type);
-            if (JibxUtil.isSimpleValue(type)) {
+            if (JibxSimpleTypes.isSimpleType(type)) {
                 QName stype = part.getTypeQName();
                 QName ctype = part.getConcreteName();
                 if (ctx.isAt(ctype.getNamespaceURI(), ctype.getLocalPart())) {
                     String text = ctx.parseElementText(ctype.getNamespaceURI(), ctype.getLocalPart());
-                    return JibxUtil.toObject(text, stype);
+                    return JibxSimpleTypes.toObject(text, stype);
                 } else {
                     throw new RuntimeException("Missing required element [" + ctype + "]");
                 }
@@ -77,7 +77,7 @@ public class JibxDataReader implements DataReader<XMLStreamReader> {
     private static UnmarshallingContext getUnmarshallingContext(XMLStreamReader reader, Class jtype)
         throws JiBXException {
         IBindingFactory factory;
-        if (JibxUtil.isSimpleValue(jtype)) {
+        if (JibxSimpleTypes.isSimpleType(jtype)) {
             factory = JibxNullBindingFactory.getFactory();
         } else {
             factory = BindingDirectory.getFactory(jtype);

@@ -26,10 +26,10 @@ import org.apache.cxf.common.logging.LogUtils;
 import org.jibx.schema.validation.ProblemHandler;
 import org.jibx.schema.validation.ValidationProblem;
 
-public class JiBXToolingProblemHandler implements ProblemHandler {
+public class JibxToolingProblemHandler implements ProblemHandler {
 
     // We are using JiBXToolingDataBinding logger
-    private static final Logger LOG = LogUtils.getLogger(JiBXToolingDataBinding.class);
+    private static final Logger LOG = LogUtils.getLogger(JibxToolingDataBinding.class);
 
     public void handleError(ValidationProblem prob) {
         LOG.log(Level.SEVERE, prob.getDescription());
